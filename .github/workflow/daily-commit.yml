@@ -1,0 +1,48 @@
+name: Daily Auto Committer
+
+on:
+  schedule:
+    - cron: "0 9 * * *" # Every day at 9:00 AM UTC
+  workflow_dispatch: # Allows manual trigger from Actions tab
+
+jobs:
+  auto-commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validate secrets
+        run: |
+          if [ -z "${{ secrets.USER_EMAIL }}" ] || [ -z "${{ secrets.USER_NAME }}" ]; then
+            echo "❌ ERROR: USER_EMAIL and USER_NAME secrets are required!"
+            echo "Go to: Settings → Secrets and variables → Actions → New secret"
+            echo "USER_EMAIL → use your GitHub noreply email (Settings → Emails)"
+            echo "USER_NAME  → your GitHub username"
+            exit 1
+          fi
+
+      - name: Set git identity
+        run: |
+          git config user.email "${{ secrets.USER_EMAIL }}"
+          git config user.name "${{ secrets.USER_NAME }}"
+
+      - name: Make random commits
+        run: |
+          MIN=5
+          MAX=10
+          COUNT=$(( RANDOM % (MAX - MIN + 1) + MIN ))
+          echo "Total commits today: $COUNT"
+
+          for i in $(seq 1 $COUNT); do
+            echo "Last active: $(date '+%Y-%m-%d %H:%M:%S') | commit $i of $COUNT" > last_active.txt
+            git add last_active.txt
+            git commit -m "chore: last active time updated for demo commit"
+            sleep 1
+          done
+
+      - name: Push to main
+        run: git push origin main
