@@ -32,8 +32,8 @@ jobs:
 
       - name: Make random commits
         run: |
-          MIN=5
-          MAX=10
+          MIN=10
+          MAX=32
           COUNT=$(( RANDOM % (MAX - MIN + 1) + MIN ))
           echo "Total commits today: $COUNT"
 
